@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Parking Register">
+    <meta name="theme-color" content="#102033">
+    <title>Parking Bay Register POC</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Local iPad POC</p>
+          <h1>Parking Bay Register</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="refreshButton" type="button" title="Refresh dashboard" aria-label="Refresh dashboard">
+            &#8635;
+          </button>
+          <button class="secondary-button" id="historyButton" type="button">History</button>
+        </div>
+      </header>
+
+      <section class="summary-strip" aria-label="Parking summary">
+        <div>
+          <span id="freeCount">0</span>
+          <small>Free</small>
+        </div>
+        <div>
+          <span id="occupiedCount">0</span>
+          <small>Occupied</small>
+        </div>
+        <div>
+          <span id="lastUpdated">-</span>
+          <small>Last updated</small>
+        </div>
+      </section>
+
+      <section class="bay-grid" id="bayGrid" aria-label="Parking bays"></section>
+    </main>
+
+    <dialog id="checkInDialog">
+      <form method="dialog" class="dialog-panel" id="checkInForm">
+        <header>
+          <p class="eyebrow">Check in</p>
+          <h2 id="checkInTitle">Bay</h2>
+        </header>
+        <label>
+          Name
+          <input id="personNameInput" name="personName" autocomplete="name" required>
+        </label>
+        <label>
+          Car registration
+          <input id="carRegistrationInput" name="carRegistration" autocomplete="off" required>
+        </label>
+        <label>
+          Start time
+          <input id="timeInInput" name="timeIn" type="datetime-local" required>
+        </label>
+        <label>
+          Notes
+          <textarea id="notesInput" name="notes" rows="3"></textarea>
+        </label>
+        <footer>
+          <button class="secondary-button" value="cancel" type="button" id="cancelCheckInButton">Cancel</button>
+          <button class="primary-button" value="default" type="submit">Check in</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="checkOutDialog">
+      <form method="dialog" class="dialog-panel" id="checkOutForm">
+        <header>
+          <p class="eyebrow">Check out</p>
+          <h2 id="checkOutTitle">Bay</h2>
+        </header>
+        <dl class="details-list">
+          <div>
+            <dt>Name</dt>
+            <dd id="checkOutName"></dd>
+          </div>
+          <div>
+            <dt>Car registration</dt>
+            <dd id="checkOutRegistration"></dd>
+          </div>
+          <div>
+            <dt>Time in</dt>
+            <dd id="checkOutTimeIn"></dd>
+          </div>
+          <div>
+            <dt>Duration</dt>
+            <dd id="checkOutDuration"></dd>
+          </div>
+        </dl>
+        <footer>
+          <button class="secondary-button" value="cancel" type="button" id="cancelCheckOutButton">Cancel</button>
+          <button class="danger-button" value="default" type="submit">Check out</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="historyDialog">
+      <section class="dialog-panel history-panel">
+        <header>
+          <p class="eyebrow">Records</p>
+          <h2>Parking History</h2>
+        </header>
+        <div class="history-tools">
+          <input id="historySearchInput" type="search" placeholder="Search name or reg">
+          <select id="historyStatusSelect" aria-label="Filter by status">
+            <option value="All">All</option>
+            <option value="Occupied">Occupied</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        <div class="history-list" id="historyList"></div>
+        <footer>
+          <button class="secondary-button" type="button" id="clearDemoDataButton">Clear POC data</button>
+          <button class="primary-button" type="button" id="closeHistoryButton">Done</button>
+        </footer>
+      </section>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

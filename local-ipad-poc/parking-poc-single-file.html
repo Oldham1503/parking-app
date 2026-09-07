@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Parking Register">
+    <meta name="theme-color" content="#102033">
+    <title>Parking Bay Register POC</title>
+    <style>
+:root {
+  color-scheme: light;
+  --bg: #eef2f5;
+  --panel: #ffffff;
+  --ink: #14202f;
+  --muted: #617084;
+  --line: #d5dde7;
+  --free: #d8f3df;
+  --free-ink: #14532d;
+  --busy: #ffe1dc;
+  --busy-ink: #8a1f11;
+  --primary: #155e75;
+  --primary-dark: #0f4151;
+  --danger: #b42318;
+  --shadow: 0 16px 35px rgba(24, 39, 58, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  cursor: pointer;
+}
+
+.app-shell {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  padding: max(18px, env(safe-area-inset-top)) 18px max(18px, env(safe-area-inset-bottom));
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2 {
+  margin: 0;
+  letter-spacing: 0;
+}
+
+h1 {
+  font-size: clamp(2rem, 4vw, 3.4rem);
+  line-height: 1;
+}
+
+h2 {
+  font-size: 1.65rem;
+}
+
+.topbar-actions,
+.history-tools,
+footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.icon-button,
+.secondary-button,
+.primary-button,
+.danger-button {
+  min-height: 46px;
+  border-radius: 8px;
+  padding: 0 18px;
+  font-weight: 750;
+}
+
+.icon-button {
+  width: 50px;
+  padding: 0;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  font-size: 1.55rem;
+}
+
+.secondary-button {
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+
+.primary-button {
+  background: var(--primary);
+  color: #fff;
+}
+
+.primary-button:active {
+  background: var(--primary-dark);
+}
+
+.danger-button {
+  background: var(--danger);
+  color: #fff;
+}
+
+.summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.summary-strip div {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+}
+
+.summary-strip span {
+  display: block;
+  font-size: 1.65rem;
+  font-weight: 800;
+}
+
+.summary-strip small {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.bay-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.bay-tile {
+  min-height: 190px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  text-align: left;
+  box-shadow: var(--shadow);
+}
+
+.bay-tile.free {
+  background: var(--free);
+  color: var(--free-ink);
+}
+
+.bay-tile.occupied {
+  background: var(--busy);
+  color: var(--busy-ink);
+}
+
+.bay-number {
+  font-size: 2.2rem;
+  font-weight: 850;
+}
+
+.bay-status {
+  font-size: 1.05rem;
+  font-weight: 850;
+}
+
+.bay-meta {
+  display: grid;
+  gap: 4px;
+  color: var(--ink);
+}
+
+.bay-meta strong {
+  font-size: 1.15rem;
+}
+
+.bay-meta span {
+  color: var(--muted);
+  font-weight: 650;
+}
+
+dialog {
+  width: min(620px, calc(100vw - 24px));
+  border: 0;
+  border-radius: 8px;
+  padding: 0;
+  background: transparent;
+}
+
+dialog::backdrop {
+  background: rgba(15, 23, 42, 0.44);
+}
+
+.dialog-panel {
+  display: grid;
+  gap: 16px;
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+}
+
+.dialog-panel label {
+  display: grid;
+  gap: 7px;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: #fff;
+}
+
+input,
+select {
+  min-height: 48px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+footer {
+  justify-content: flex-end;
+}
+
+.details-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.details-list div {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+}
+
+dt {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+.history-panel {
+  width: min(920px, calc(100vw - 24px));
+}
+
+.history-list {
+  display: grid;
+  gap: 8px;
+  max-height: 58vh;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.history-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.history-row strong {
+  display: block;
+}
+
+.history-row span {
+  color: var(--muted);
+}
+
+.status-pill {
+  align-self: start;
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #fff;
+  background: var(--primary);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.status-pill.completed {
+  background: #64748b;
+}
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translate(-50%, 120px);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 800;
+  opacity: 0;
+  transition: transform 180ms ease, opacity 180ms ease;
+  z-index: 100;
+}
+
+.toast.visible {
+  transform: translate(-50%, 0);
+  opacity: 1;
+}
+
+@media (max-width: 900px) {
+  .bay-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar,
+  .history-tools,
+  footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .summary-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .bay-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .details-list div,
+  .history-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+    </style>
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Local iPad POC</p>
+          <h1>Parking Bay Register</h1>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="refreshButton" type="button" title="Refresh dashboard" aria-label="Refresh dashboard">
+            &#8635;
+          </button>
+          <button class="secondary-button" id="historyButton" type="button">History</button>
+        </div>
+      </header>
+
+      <section class="summary-strip" aria-label="Parking summary">
+        <div>
+          <span id="freeCount">0</span>
+          <small>Free</small>
+        </div>
+        <div>
+          <span id="occupiedCount">0</span>
+          <small>Occupied</small>
+        </div>
+        <div>
+          <span id="lastUpdated">-</span>
+          <small>Last updated</small>
+        </div>
+      </section>
+
+      <section class="bay-grid" id="bayGrid" aria-label="Parking bays"></section>
+    </main>
+
+    <dialog id="checkInDialog">
+      <form method="dialog" class="dialog-panel" id="checkInForm">
+        <header>
+          <p class="eyebrow">Check in</p>
+          <h2 id="checkInTitle">Bay</h2>
+        </header>
+        <label>
+          Name
+          <input id="personNameInput" name="personName" autocomplete="name" required>
+        </label>
+        <label>
+          Car registration
+          <input id="carRegistrationInput" name="carRegistration" autocomplete="off" required>
+        </label>
+        <label>
+          Start time
+          <input id="timeInInput" name="timeIn" type="datetime-local" required>
+        </label>
+        <label>
+          Notes
+          <textarea id="notesInput" name="notes" rows="3"></textarea>
+        </label>
+        <footer>
+          <button class="secondary-button" value="cancel" type="button" id="cancelCheckInButton">Cancel</button>
+          <button class="primary-button" value="default" type="submit">Check in</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="checkOutDialog">
+      <form method="dialog" class="dialog-panel" id="checkOutForm">
+        <header>
+          <p class="eyebrow">Check out</p>
+          <h2 id="checkOutTitle">Bay</h2>
+        </header>
+        <dl class="details-list">
+          <div>
+            <dt>Name</dt>
+            <dd id="checkOutName"></dd>
+          </div>
+          <div>
+            <dt>Car registration</dt>
+            <dd id="checkOutRegistration"></dd>
+          </div>
+          <div>
+            <dt>Time in</dt>
+            <dd id="checkOutTimeIn"></dd>
+          </div>
+          <div>
+            <dt>Duration</dt>
+            <dd id="checkOutDuration"></dd>
+          </div>
+        </dl>
+        <footer>
+          <button class="secondary-button" value="cancel" type="button" id="cancelCheckOutButton">Cancel</button>
+          <button class="danger-button" value="default" type="submit">Check out</button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog id="historyDialog">
+      <section class="dialog-panel history-panel">
+        <header>
+          <p class="eyebrow">Records</p>
+          <h2>Parking History</h2>
+        </header>
+        <div class="history-tools">
+          <input id="historySearchInput" type="search" placeholder="Search name or reg">
+          <select id="historyStatusSelect" aria-label="Filter by status">
+            <option value="All">All</option>
+            <option value="Occupied">Occupied</option>
+            <option value="Completed">Completed</option>
+          </select>
+        </div>
+        <div class="history-list" id="historyList"></div>
+        <footer>
+          <button class="secondary-button" type="button" id="clearDemoDataButton">Clear POC data</button>
+          <button class="primary-button" type="button" id="closeHistoryButton">Done</button>
+        </footer>
+      </section>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+const STORAGE_KEY = "parking-bay-register-poc-v1";
+const BAY_COUNT = 10;
+
+const parkingStore = {
+  load() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  },
+
+  save(records) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  },
+
+  all() {
+    return this.load().sort((a, b) => new Date(b.timeIn) - new Date(a.timeIn));
+  },
+
+  activeForBay(bayNumber) {
+    return this.load().find((record) => record.bayNumber === bayNumber && record.status === "Occupied") || null;
+  },
+
+  checkIn({ bayNumber, personName, carRegistration, timeIn, notes }) {
+    const records = this.load();
+    const alreadyOccupied = records.some((record) => record.bayNumber === bayNumber && record.status === "Occupied");
+
+    if (alreadyOccupied) {
+      throw new Error(`Bay ${bayNumber} is already occupied.`);
+    }
+
+    const selectedTimeIn = new Date(timeIn);
+
+    if (Number.isNaN(selectedTimeIn.getTime())) {
+      throw new Error("Choose a valid start time.");
+    }
+
+    if (selectedTimeIn > new Date()) {
+      throw new Error("Start time cannot be in the future.");
+    }
+
+    const record = {
+      id: createId(),
+      bayNumber,
+      personName,
+      carRegistration: carRegistration.toUpperCase(),
+      notes,
+      timeIn: selectedTimeIn.toISOString(),
+      timeOut: null,
+      status: "Occupied",
+      createdBy: "Local iPad POC",
+      checkedOutBy: null
+    };
+
+    records.push(record);
+    this.save(records);
+    return record;
+  },
+
+  checkOut(recordId) {
+    const records = this.load();
+    const record = records.find((item) => item.id === recordId && item.status === "Occupied");
+
+    if (!record) {
+      throw new Error("This parking session has already changed.");
+    }
+
+    record.timeOut = new Date().toISOString();
+    record.status = "Completed";
+    record.checkedOutBy = "Local iPad POC";
+    this.save(records);
+    return record;
+  },
+
+  clear() {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+};
+
+function createId() {
+  if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+const state = {
+  selectedBay: null,
+  selectedRecord: null,
+  toastTimer: null
+};
+
+const elements = {
+  bayGrid: document.querySelector("#bayGrid"),
+  freeCount: document.querySelector("#freeCount"),
+  occupiedCount: document.querySelector("#occupiedCount"),
+  lastUpdated: document.querySelector("#lastUpdated"),
+  refreshButton: document.querySelector("#refreshButton"),
+  historyButton: document.querySelector("#historyButton"),
+  checkInDialog: document.querySelector("#checkInDialog"),
+  checkInForm: document.querySelector("#checkInForm"),
+  checkInTitle: document.querySelector("#checkInTitle"),
+  personNameInput: document.querySelector("#personNameInput"),
+  carRegistrationInput: document.querySelector("#carRegistrationInput"),
+  timeInInput: document.querySelector("#timeInInput"),
+  notesInput: document.querySelector("#notesInput"),
+  cancelCheckInButton: document.querySelector("#cancelCheckInButton"),
+  checkOutDialog: document.querySelector("#checkOutDialog"),
+  checkOutForm: document.querySelector("#checkOutForm"),
+  checkOutTitle: document.querySelector("#checkOutTitle"),
+  checkOutName: document.querySelector("#checkOutName"),
+  checkOutRegistration: document.querySelector("#checkOutRegistration"),
+  checkOutTimeIn: document.querySelector("#checkOutTimeIn"),
+  checkOutDuration: document.querySelector("#checkOutDuration"),
+  cancelCheckOutButton: document.querySelector("#cancelCheckOutButton"),
+  historyDialog: document.querySelector("#historyDialog"),
+  historyList: document.querySelector("#historyList"),
+  historySearchInput: document.querySelector("#historySearchInput"),
+  historyStatusSelect: document.querySelector("#historyStatusSelect"),
+  closeHistoryButton: document.querySelector("#closeHistoryButton"),
+  clearDemoDataButton: document.querySelector("#clearDemoDataButton"),
+  toast: document.querySelector("#toast")
+};
+
+function formatDateTime(value) {
+  if (!value) {
+    return "-";
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date(value));
+}
+
+function toDateTimeInputValue(date = new Date()) {
+  const offsetMs = date.getTimezoneOffset() * 60000;
+  return new Date(date.getTime() - offsetMs).toISOString().slice(0, 16);
+}
+
+function formatDuration(timeIn, timeOut = new Date().toISOString()) {
+  const start = new Date(timeIn);
+  const end = new Date(timeOut);
+  const minutes = Math.max(0, Math.round((end - start) / 60000));
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (hours === 0) {
+    return `${remainingMinutes} min`;
+  }
+
+  return `${hours} hr ${remainingMinutes} min`;
+}
+
+function showToast(message) {
+  window.clearTimeout(state.toastTimer);
+  elements.toast.textContent = message;
+  elements.toast.classList.add("visible");
+  state.toastTimer = window.setTimeout(() => {
+    elements.toast.classList.remove("visible");
+  }, 2400);
+}
+
+function getBayModels() {
+  return Array.from({ length: BAY_COUNT }, (_, index) => {
+    const bayNumber = index + 1;
+    const activeRecord = parkingStore.activeForBay(bayNumber);
+
+    return {
+      bayNumber,
+      activeRecord,
+      status: activeRecord ? "Occupied" : "Free"
+    };
+  });
+}
+
+function renderDashboard() {
+  const bays = getBayModels();
+  const occupiedCount = bays.filter((bay) => bay.status === "Occupied").length;
+  const freeCount = BAY_COUNT - occupiedCount;
+
+  elements.freeCount.textContent = freeCount;
+  elements.occupiedCount.textContent = occupiedCount;
+  elements.lastUpdated.textContent = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(new Date());
+
+  elements.bayGrid.replaceChildren(...bays.map(createBayTile));
+}
+
+function createBayTile(bay) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = `bay-tile ${bay.status === "Occupied" ? "occupied" : "free"}`;
+  button.addEventListener("click", () => openBay(bay.bayNumber));
+
+  const top = document.createElement("div");
+  const number = document.createElement("div");
+  number.className = "bay-number";
+  number.textContent = `Bay ${bay.bayNumber}`;
+
+  const status = document.createElement("div");
+  status.className = "bay-status";
+  status.textContent = bay.status;
+
+  top.append(number, status);
+
+  const meta = document.createElement("div");
+  meta.className = "bay-meta";
+
+  if (bay.activeRecord) {
+    const name = document.createElement("strong");
+    name.textContent = bay.activeRecord.personName;
+
+    const registration = document.createElement("span");
+    registration.textContent = bay.activeRecord.carRegistration;
+
+    const timeIn = document.createElement("span");
+    timeIn.textContent = `In: ${formatDateTime(bay.activeRecord.timeIn)}`;
+
+    const duration = document.createElement("span");
+    duration.textContent = `Duration: ${formatDuration(bay.activeRecord.timeIn)}`;
+
+    meta.append(name, registration, timeIn, duration);
+  } else {
+    const available = document.createElement("strong");
+    available.textContent = "Available";
+
+    const action = document.createElement("span");
+    action.textContent = "Tap to check in";
+
+    meta.append(available, action);
+  }
+
+  button.append(top, meta);
+  return button;
+}
+
+function openBay(bayNumber) {
+  const activeRecord = parkingStore.activeForBay(bayNumber);
+  state.selectedBay = bayNumber;
+  state.selectedRecord = activeRecord;
+
+  if (activeRecord) {
+    openCheckOut(activeRecord);
+  } else {
+    openCheckIn(bayNumber);
+  }
+}
+
+function openCheckIn(bayNumber) {
+  elements.checkInTitle.textContent = `Bay ${bayNumber}`;
+  elements.checkInForm.reset();
+  elements.timeInInput.value = toDateTimeInputValue();
+  elements.timeInInput.max = toDateTimeInputValue();
+  elements.checkInDialog.showModal();
+  elements.personNameInput.focus();
+}
+
+function openCheckOut(record) {
+  elements.checkOutTitle.textContent = `Bay ${record.bayNumber}`;
+  elements.checkOutName.textContent = record.personName;
+  elements.checkOutRegistration.textContent = record.carRegistration;
+  elements.checkOutTimeIn.textContent = formatDateTime(record.timeIn);
+  elements.checkOutDuration.textContent = formatDuration(record.timeIn);
+  elements.checkOutDialog.showModal();
+}
+
+function renderHistory() {
+  const query = elements.historySearchInput.value.trim().toLowerCase();
+  const status = elements.historyStatusSelect.value;
+  const records = parkingStore.all().filter((record) => {
+    const matchesStatus = status === "All" || record.status === status;
+    const matchesSearch =
+      query.length === 0 ||
+      record.personName.toLowerCase().includes(query) ||
+      record.carRegistration.toLowerCase().includes(query);
+
+    return matchesStatus && matchesSearch;
+  });
+
+  if (records.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "empty-state";
+    empty.textContent = "No parking records found.";
+    elements.historyList.replaceChildren(empty);
+    return;
+  }
+
+  elements.historyList.replaceChildren(...records.map(createHistoryRow));
+}
+
+function createHistoryRow(record) {
+  const row = document.createElement("article");
+  row.className = "history-row";
+
+  const content = document.createElement("div");
+  const title = document.createElement("strong");
+  title.textContent = `Bay ${record.bayNumber} - ${record.carRegistration}`;
+
+  const details = document.createElement("span");
+  const outText = record.timeOut ? `Out: ${formatDateTime(record.timeOut)}` : "Currently parked";
+  details.textContent = `${record.personName} | In: ${formatDateTime(record.timeIn)} | ${outText}`;
+
+  content.append(title, details);
+
+  const status = document.createElement("span");
+  status.className = `status-pill ${record.status === "Completed" ? "completed" : ""}`;
+  status.textContent = record.status;
+
+  row.append(content, status);
+  return row;
+}
+
+elements.refreshButton.addEventListener("click", () => {
+  renderDashboard();
+  showToast("Dashboard refreshed.");
+});
+
+elements.historyButton.addEventListener("click", () => {
+  renderHistory();
+  elements.historyDialog.showModal();
+});
+
+elements.checkInForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  try {
+    parkingStore.checkIn({
+      bayNumber: state.selectedBay,
+      personName: elements.personNameInput.value.trim(),
+      carRegistration: elements.carRegistrationInput.value.trim(),
+      timeIn: elements.timeInInput.value,
+      notes: elements.notesInput.value.trim()
+    });
+    elements.checkInDialog.close();
+    renderDashboard();
+    showToast(`Bay ${state.selectedBay} checked in.`);
+  } catch (error) {
+    showToast(error.message);
+    renderDashboard();
+  }
+});
+
+elements.cancelCheckInButton.addEventListener("click", () => {
+  elements.checkInDialog.close();
+});
+
+elements.checkOutForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  try {
+    parkingStore.checkOut(state.selectedRecord.id);
+    elements.checkOutDialog.close();
+    renderDashboard();
+    showToast(`Bay ${state.selectedBay} checked out.`);
+  } catch (error) {
+    showToast(error.message);
+    renderDashboard();
+  }
+});
+
+elements.cancelCheckOutButton.addEventListener("click", () => {
+  elements.checkOutDialog.close();
+});
+
+elements.historySearchInput.addEventListener("input", renderHistory);
+elements.historyStatusSelect.addEventListener("change", renderHistory);
+
+elements.closeHistoryButton.addEventListener("click", () => {
+  elements.historyDialog.close();
+});
+
+elements.clearDemoDataButton.addEventListener("click", () => {
+  const confirmed = window.confirm("Clear all local POC parking records from this browser?");
+
+  if (!confirmed) {
+    return;
+  }
+
+  parkingStore.clear();
+  renderHistory();
+  renderDashboard();
+  showToast("Local POC data cleared.");
+});
+
+window.setInterval(renderDashboard, 60000);
+renderDashboard();
+
+    </script>
+  </body>
+</html>
+

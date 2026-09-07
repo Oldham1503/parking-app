@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Parking Bay Register</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="brand-lockup">
+          <div class="brand-logo-slot">
+            <img alt="Company logo" class="brand-logo-image" id="brandLogoImage" src="logo.png" />
+            <span class="brand-logo-fallback">Logo</span>
+          </div>
+          <div>
+            <p class="eyebrow">C365Cloud</p>
+            <h1>Parking Bay Register</h1>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="refreshButton" title="Refresh register" type="button">R</button>
+          <button class="primary-button" id="exportButton" type="button">Export to Excel</button>
+        </div>
+      </header>
+
+      <nav aria-label="Register sections" class="tab-bar">
+        <button class="active" data-tab="staff" type="button">Staff Parking</button>
+        <button data-tab="visitors" type="button">Visitors</button>
+      </nav>
+
+      <div class="notice" id="notice" hidden></div>
+      <section class="summary-strip" id="summary"></section>
+
+      <section class="tab-panel" id="staffPanel">
+        <section aria-label="Parking bays" class="bay-grid priority-bays" id="bayGrid"></section>
+
+        <div class="section-actions">
+          <h2>Staff Parking</h2>
+          <div class="topbar-actions">
+            <button class="secondary-button" id="toggleStaffDetails" type="button">Staff details</button>
+            <button class="secondary-button" id="showStaffHistory" type="button">Staff history</button>
+          </div>
+        </div>
+
+        <section class="panel staff-details-panel" id="staffDetailsPanel" hidden>
+          <header class="panel-header">
+            <div>
+              <p class="eyebrow">This PC only</p>
+              <h2>Saved Staff Members</h2>
+            </div>
+          </header>
+          <form class="entry-form compact-form" id="staffProfileForm">
+            <label>Name<input id="profileName" required /></label>
+            <label>Car registration<input id="profileRegistration" required /></label>
+            <footer>
+              <button class="primary-button" id="profileSaveButton" type="submit">Add staff member</button>
+              <button class="secondary-button" id="profileCancelEditButton" type="button" hidden>Cancel edit</button>
+            </footer>
+          </form>
+          <div class="staff-profile-list" id="staffProfiles"></div>
+        </section>
+
+        <section class="panel modal-panel" id="staffCheckInPanel" hidden>
+          <header class="panel-header">
+            <div><p class="eyebrow">Staff check in</p><h2 id="staffCheckInTitle">Bay</h2></div>
+            <button class="secondary-button" data-close-panel type="button">Cancel</button>
+          </header>
+          <form class="entry-form" id="staffCheckInForm">
+            <label>Pick saved staff member<select id="savedStaffSelect"></select></label>
+            <label>Name<input id="staffName" required /></label>
+            <label>Car registration<input id="staffRegistration" required /></label>
+            <label>Start time<input id="staffTimeIn" required type="datetime-local" /></label>
+            <label>Notes<textarea id="staffNotes" rows="3"></textarea></label>
+            <footer><button class="primary-button" type="submit">Check in</button></footer>
+          </form>
+        </section>
+
+        <section class="panel modal-panel" id="staffCheckOutPanel" hidden>
+          <header class="panel-header">
+            <div><p class="eyebrow">Staff check out</p><h2 id="staffCheckOutTitle">Bay</h2></div>
+            <button class="secondary-button" data-close-panel type="button">Cancel</button>
+          </header>
+          <dl class="details-list" id="staffCheckOutDetails"></dl>
+          <footer><button class="danger-button" id="staffCheckOutButton" type="button">Check out</button></footer>
+        </section>
+
+        <section class="panel history-panel" id="staffHistoryPanel" hidden>
+          <header class="panel-header">
+            <div><p class="eyebrow">Staff records</p><h2>Staff Parking History</h2></div>
+            <button class="primary-button" data-close-panel type="button">Done</button>
+          </header>
+          <div class="history-tools">
+            <input id="staffHistorySearch" placeholder="Search name or reg" type="search" />
+            <select id="staffHistoryStatus"><option>All</option><option>Occupied</option><option>Completed</option></select>
+          </div>
+          <div class="history-list" id="staffHistory"></div>
+        </section>
+      </section>
+
+      <section class="tab-panel" id="visitorsPanel" hidden>
+        <section class="panel visitor-dashboard">
+          <header class="panel-header">
+            <div><p class="eyebrow">Visitor register</p><h2>Visitors in the office</h2></div>
+            <div class="topbar-actions">
+              <button class="primary-button" id="showVisitorSignIn" type="button">Sign in visitor</button>
+              <button class="secondary-button" id="showVisitorHistory" type="button">Visitor history</button>
+            </div>
+          </header>
+          <div class="history-list" id="signedInVisitors"></div>
+        </section>
+
+        <section class="panel modal-panel" id="visitorSignInPanel" hidden>
+          <header class="panel-header">
+            <div><p class="eyebrow">Visitor sign in</p><h2>New visitor</h2></div>
+            <button class="secondary-button" data-close-panel type="button">Cancel</button>
+          </header>
+          <form class="entry-form" id="visitorSignInForm">
+            <label>Name<input id="visitorName" required /></label>
+            <label>Company name<input id="companyName" required /></label>
+            <label>Who visiting<input id="visiting" required /></label>
+            <label>Car registration, if applicable<input id="visitorRegistration" /></label>
+            <label>Door pass number, if applicable<input id="doorPass" /></label>
+            <label>Car park bay number<select id="visitorBay"></select></label>
+            <label>Time in<input id="visitorTimeIn" required type="datetime-local" /></label>
+            <label>Notes<textarea id="visitorNotes" rows="3"></textarea></label>
+            <footer><button class="primary-button" type="submit">Sign in visitor</button></footer>
+          </form>
+        </section>
+
+        <section class="panel modal-panel" id="visitorSignOutPanel" hidden>
+          <header class="panel-header">
+            <div><p class="eyebrow">Visitor sign out</p><h2 id="visitorSignOutTitle">Visitor</h2></div>
+            <button class="secondary-button" data-close-panel type="button">Cancel</button>
+          </header>
+          <dl class="details-list" id="visitorSignOutDetails"></dl>
+          <footer><button class="danger-button" id="visitorSignOutButton" type="button">Sign out visitor</button></footer>
+        </section>
+
+        <section class="panel history-panel" id="visitorHistoryPanel" hidden>
+          <header class="panel-header">
+            <div><p class="eyebrow">Visitor records</p><h2>Visitor History</h2></div>
+            <button class="primary-button" data-close-panel type="button">Done</button>
+          </header>
+          <div class="history-tools">
+            <input id="visitorHistorySearch" placeholder="Search visitor, company, host or reg" type="search" />
+            <select id="visitorHistoryStatus"><option>All</option><option>Signed In</option><option>Signed Out</option></select>
+          </div>
+          <div class="history-list" id="visitorHistory"></div>
+        </section>
+      </section>
+
+      <p class="data-path" id="dataPath" hidden></p>
+    </main>
+    <div class="modal-backdrop" id="modalBackdrop" hidden></div>
+    <section class="message-dialog" id="messageDialog" hidden>
+      <header class="panel-header">
+        <div>
+          <p class="eyebrow">Parking bay register</p>
+          <h2 id="messageTitle">Notice</h2>
+        </div>
+      </header>
+      <p id="messageBody"></p>
+      <footer>
+        <button class="primary-button" id="messageOkButton" type="button">OK</button>
+      </footer>
+    </section>
+    <script src="app.js"></script>
+  </body>
+</html>
