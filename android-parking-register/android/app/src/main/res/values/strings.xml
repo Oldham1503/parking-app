@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Parking Bay Register</string>
+    <string name="title_activity_main">Parking Bay Register</string>
+    <string name="package_name">com.c365cloud.parkingregister</string>
+    <string name="custom_url_scheme">com.c365cloud.parkingregister</string>
+</resources>
